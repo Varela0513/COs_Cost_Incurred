@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from tkinter import Tk, filedialog
 
+
 # Function to get the data directory using Tkinter
 def get_data_directory():
     root = Tk()
@@ -92,9 +93,18 @@ column_order = (['Job', 'Project Name', 'Cost Incurred'] +
                 [col for col in result.columns if col not in ['Job', 'Project Name', 'Cost Incurred']])
 result = result[column_order]
 
+# Remove 'C' and leading zeros from 'Cost type'
+result['Cost type'] = result['Cost type'].str.extract(r'(\d+)').astype(int)
+
 # Save each Job to a separate sheet in the Excel file
 with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
     for job, df_job in result.groupby('Job'):
+        # Remove 'C' and leading zeros from 'Cost type' before saving
+        df_job['Cost type'] = df_job['Cost type'].astype(str).str.extract(r'(\d+)').astype(int)
+
+        # Remove duplicates based on 'Cost type' before saving
+        df_job = df_job.drop_duplicates(subset=['Cost type'])
+
         df_job.to_excel(writer, sheet_name=f'Job_{int(job)}', index=False)
 
         # Automatically adjust the width of the columns
