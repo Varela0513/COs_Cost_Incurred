@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from tkinter import Tk, filedialog
 
+
 # Function to get the data directory using Tkinter
 def get_data_directory():
     root = Tk()
@@ -10,6 +11,7 @@ def get_data_directory():
     # Open the dialog box to select the directory
     data_directory = filedialog.askdirectory(title="Select data directory")
     return data_directory
+
 
 # Function to get the job codes file using Tkinter
 def get_job_codes_file():
@@ -21,6 +23,7 @@ def get_job_codes_file():
         filedialog.askopenfilename(title="Select job codes file", filetypes=[("Excel Files", "*.xlsx")]))
     return job_codes_file
 
+
 # Function to get the output file path using Tkinter
 def get_output_file_path():
     root = Tk()
@@ -30,6 +33,7 @@ def get_output_file_path():
     local_output_file_path = filedialog.asksaveasfilename(
         title="Save Result As", filetypes=[("Excel Files", "*.xlsx")], defaultextension=".xlsx")
     return local_output_file_path
+
 
 # Get data directory, job codes file, and output file path
 data_path = get_data_directory()
