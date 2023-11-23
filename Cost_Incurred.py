@@ -2,44 +2,47 @@ import os
 import pandas as pd
 from tkinter import Tk, filedialog
 
-# Función para obtener el directorio de datos usando Tkinter
+# Function to get the data directory using Tkinter
 def get_data_directory():
     root = Tk()
-    root.withdraw()  # Ocultar la ventana principal
+    root.withdraw()  # Hide the main window
 
-    # Abrir el cuadro de diálogo para seleccionar el directorio
-    data_directory = filedialog.askdirectory(title="Seleccionar directorio de datos")
+    # Open the dialog box to select the directory
+    data_directory = filedialog.askdirectory(title="Select data directory")
     return data_directory
 
-# Función para obtener el archivo de códigos de trabajo usando Tkinter
+
+# Function to get the job codes file using Tkinter
 def get_job_codes_file():
     root = Tk()
-    root.withdraw()  # Ocultar la ventana principal
+    root.withdraw()  # Hide the main window
 
-    # Abrir el cuadro de diálogo para seleccionar el archivo de códigos de trabajo
+    # Open the dialog box to select the job codes file
     job_codes_file = (
-        filedialog.askopenfilename(title="Seleccionar archivo de códigos de trabajo", filetypes=[("Archivos de Excel", "*.xlsx")]))
+        filedialog.askopenfilename(title="Select job codes file", filetypes=[("Excel Files", "*.xlsx")]))
     return job_codes_file
 
-# Función para obtener la ruta del archivo de salida usando Tkinter
+
+# Function to get the output file path using Tkinter
 def get_output_file_path():
     root = Tk()
-    root.withdraw()  # Ocultar la ventana principal
+    root.withdraw()  # Hide the main window
 
-    # Abrir el cuadro de diálogo para seleccionar la ruta del archivo de salida
+    # Open the dialog box to select the output file path
     local_output_file_path = filedialog.asksaveasfilename(
-        title="Guardar resultado como", filetypes=[("Archivos de Excel", "*.xlsx")], defaultextension=".xlsx")
+        title="Save Result As", filetypes=[("Excel Files", "*.xlsx")], defaultextension=".xlsx")
     return local_output_file_path
 
-# Obtener directorio de datos, archivo de códigos de trabajo y ruta del archivo de salida
+
+# Get data directory, job codes file, and output file path
 data_path = get_data_directory()
 job_codes_file_path = get_job_codes_file()
 output_file_path = get_output_file_path()
 
-# Lista para almacenar DataFrames para cada archivo
+# List to store DataFrames for each file
 dataframes = []
 
-# Lista de columnas a eliminar
+# List of columns to be removed
 columns_to_remove = [
     "Estimated cost",
     "Projected cost",
@@ -47,60 +50,54 @@ columns_to_remove = [
     "% complete - cost"
 ]
 
-# Iterar sobre cada archivo en el directorio de datos
+# Iterate over each file in the data directory
 for file in os.listdir(data_path):
     if file.endswith(".xlsx"):
-        # Ruta completa del archivo
+        # Full path of the file
         file_path = os.path.join(data_path, file)
 
-        # Leer el archivo de Excel y eliminar columnas no deseadas
+        # Read the Excel file and remove unwanted columns
         df = pd.read_excel(file_path)
         df = df.drop(columns=columns_to_remove, errors='ignore')
 
-        # Filtrar filas que comienzan con 'C' en la columna 'Cost type'
+        # Filter rows starting with 'C' in the 'Cost type' column
         df = df[df['Cost type'].str.startswith('C', na=False)]
 
-        # Ordenar el DataFrame por la columna 'Cost type'
-        df = df.sort_values(by='Cost type')
-
-        # Eliminar duplicados basados en todas las columnas
-        df = df.drop_duplicates()
-
-        # Agregar el DataFrame a la lista
+        # Add the DataFrame to the list
         dataframes.append(df)
 
-# Concatenar todos los DataFrames en uno solo, ordenando por las columnas 'Job' y 'Open commitments'
+# Concatenate all DataFrames into one
 result = pd.concat(dataframes, axis=0, ignore_index=True, sort=False)
 
-# Convertir la columna 'Job' a formato numérico
+# Convert the 'Job' column to a numeric format
 result['Job'] = pd.to_numeric(result['Job'], errors='coerce')
 
-# Ordenar el DataFrame por las columnas 'Job' y 'Open commitments'
-result = result.sort_values(by=['Job', 'Open commitments'])
+# Sort the DataFrame by the 'Job', 'Cost type', and 'Open commitments' columns
+result = result.sort_values(by=['Job', 'Cost type', 'Open commitments'])
 
-# Leer el archivo de códigos de trabajo
+# Read the job codes file
 job_codes_df = pd.read_excel(job_codes_file_path)
 
-# Fusionar los DataFrames basándose en la columna 'Job'
+# Merge the DataFrames based on the 'Job' column
 result = pd.merge(result, job_codes_df, on='Job', how='left')
 
-# Crear la nueva columna 'Cost Incurred' y agregar una marca de verificación si la suma es mayor que 0
+# Create the new 'Cost Incurred' column and add a checkmark if the sum is greater than 0
 result['Cost Incurred'] = (result['JTD cost'] + result['Open commitments'] > 0)
 
-# Eliminar filas donde 'Cost Incurred' es Falso
+# Remove rows where 'Cost Incurred' is False
 result = result[result['Cost Incurred']]
 
-# Reorganizar las columnas
+# Reorganize the columns
 column_order = (['Job', 'Project Name', 'Cost Incurred'] +
                 [col for col in result.columns if col not in ['Job', 'Project Name', 'Cost Incurred']])
 result = result[column_order]
 
-# Guardar cada trabajo en una hoja separada en el archivo de Excel
+# Save each Job to a separate sheet in the Excel file
 with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
     for job, df_job in result.groupby('Job'):
         df_job.to_excel(writer, sheet_name=f'Job_{int(job)}', index=False)
 
-        # Ajustar automáticamente el ancho de las columnas
+        # Automatically adjust the width of the columns
         for i, col in enumerate(df_job.columns):
             max_len = max(df_job[col].astype(str).apply(len).max(), len(col))
             writer.sheets[f'Job_{int(job)}'].set_column(i, i, max_len + 2)
