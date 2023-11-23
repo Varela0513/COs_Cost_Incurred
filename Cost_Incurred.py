@@ -2,7 +2,6 @@ import os
 import pandas as pd
 from tkinter import Tk, filedialog
 
-
 # Function to get the data directory using Tkinter
 def get_data_directory():
     root = Tk()
@@ -11,7 +10,6 @@ def get_data_directory():
     # Open the dialog box to select the directory
     data_directory = filedialog.askdirectory(title="Select data directory")
     return data_directory
-
 
 # Function to get the job codes file using Tkinter
 def get_job_codes_file():
@@ -23,7 +21,6 @@ def get_job_codes_file():
         filedialog.askopenfilename(title="Select job codes file", filetypes=[("Excel Files", "*.xlsx")]))
     return job_codes_file
 
-
 # Function to get the output file path using Tkinter
 def get_output_file_path():
     root = Tk()
@@ -33,7 +30,6 @@ def get_output_file_path():
     local_output_file_path = filedialog.asksaveasfilename(
         title="Save Result As", filetypes=[("Excel Files", "*.xlsx")], defaultextension=".xlsx")
     return local_output_file_path
-
 
 # Get data directory, job codes file, and output file path
 data_path = get_data_directory()
@@ -95,6 +91,9 @@ result = result[column_order]
 
 # Remove 'C' and leading zeros from 'Cost type'
 result['Cost type'] = result['Cost type'].str.extract(r'(\d+)').astype(int)
+
+# Remove 'JTD cost' and 'Open commitments' columns
+result = result.drop(['JTD cost', 'Open commitments'], axis=1, errors='ignore')
 
 # Save each Job to a separate sheet in the Excel file
 with pd.ExcelWriter(output_file_path, engine='xlsxwriter') as writer:
