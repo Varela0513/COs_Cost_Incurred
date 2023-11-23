@@ -2,6 +2,7 @@ import pandas as pd
 import smartsheet
 from tkinter import Tk, filedialog, simpledialog
 
+
 # Function to get Smartsheet credentials using Tkinter input dialogs
 def get_smartsheet_credentials():
     tk = Tk()
@@ -12,6 +13,7 @@ def get_smartsheet_credentials():
 
     return access_token, sheet_id
 
+
 # Function to get the Excel file using Tkinter file dialog
 def get_excel_file():
     tk = Tk()
@@ -19,6 +21,7 @@ def get_excel_file():
 
     excel_file = filedialog.askopenfilename(title="Select Excel file", filetypes=[("Excel Files", "*.xlsx")])
     return excel_file
+
 
 # Function to update Smartsheet and generate a report
 def update_smartsheet(access_token, sheet_id, excel_file_path):
@@ -68,6 +71,7 @@ def update_smartsheet(access_token, sheet_id, excel_file_path):
         print("PermissionError: You don't have permission to access the Excel file. Check file permissions.")
         return []
 
+
 # Function to generate a report
 def generate_report(not_found_cost_types):
     if not_found_cost_types:
@@ -77,6 +81,7 @@ def generate_report(not_found_cost_types):
     else:
         print("All 'Cost Types' were successfully updated in Smartsheet.")
 
+
 # Main execution
 def main():
     access_token, sheet_id = get_smartsheet_credentials()
@@ -85,6 +90,7 @@ def main():
     not_found_cost_types = update_smartsheet(access_token, sheet_id, excel_file_path)
     generate_report(not_found_cost_types)
     print("Smartsheet updated successfully!")
+
 
 if __name__ == "__main__":
     main()
