@@ -4,8 +4,6 @@ Actualizar
 
 ## Configuración del Entorno
 
-Actualizar
-
 ### Requisitos
 
 Asegúrate de tener Python instalado en tu máquina. Puedes descargarlo desde [python.org](https://www.python.org/downloads/).
